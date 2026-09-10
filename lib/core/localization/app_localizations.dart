@@ -11,7 +11,7 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _localizedValues = {
     'ar': {
-      'appName': 'PROFLU',
+      'appName': 'Plano',
       'dashboard': 'لوحة التحكم',
       'employees': 'الموظفون',
       'reports': 'التقارير',
@@ -19,7 +19,7 @@ class AppLocalizations {
       'logout': 'تسجيل الخروج',
     },
     'en': {
-      'appName': 'PROFLU',
+      'appName': 'Plano',
       'dashboard': 'Dashboard',
       'employees': 'Employees',
       'reports': 'Reports',

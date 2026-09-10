@@ -18,7 +18,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _login() async {
     final isArabic = ref.read(localeProvider).languageCode == 'ar';
 
-    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -63,7 +64,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _resetPassword() {
-    final resetEmailController = TextEditingController(text: _emailController.text);
+    final resetEmailController = TextEditingController(
+      text: _emailController.text,
+    );
     final isArabic = ref.read(localeProvider).languageCode == 'ar';
 
     showDialog(
@@ -91,7 +94,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               final email = resetEmailController.text.trim();
               if (email.isNotEmpty) {
                 try {
-                  await ref.read(authRepositoryProvider).sendPasswordResetEmail(email);
+                  await ref
+                      .read(authRepositoryProvider)
+                      .sendPasswordResetEmail(email);
                   if (ctx.mounted) {
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -106,9 +111,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   }
                 } catch (e) {
                   if (ctx.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
                   }
                 }
               }
@@ -186,7 +191,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Welcome to PROFLU Task Manager',
+                    'Welcome to Plano Task Manager',
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 32),
@@ -196,7 +201,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     style: TextStyle(color: theme.colorScheme.onSurface),
                     decoration: InputDecoration(
                       labelText: isArabic ? 'البريد الإلكتروني' : 'Email',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                       prefixIcon: const Icon(Icons.email_outlined),
                     ),
                   ),
@@ -207,7 +214,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     style: TextStyle(color: theme.colorScheme.onSurface),
                     decoration: InputDecoration(
                       labelText: isArabic ? 'كلمة المرور' : 'Password',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                       prefixIcon: const Icon(Icons.lock_outline),
                     ),
                   ),

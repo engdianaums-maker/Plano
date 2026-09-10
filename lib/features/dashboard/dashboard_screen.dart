@@ -67,8 +67,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         elevation: 0,
         title: Text(
           isManager 
-              ? (isArabic ? 'لوحة تحكم المدير (PROFLU)' : 'Manager Dashboard') 
-              : (isArabic ? 'لوحة تحكم الموظف (PROFLU)' : 'Employee Dashboard'),
+              ? (isArabic ? 'لوحة تحكم المدير (Plano)' : 'Manager Dashboard') 
+              : (isArabic ? 'لوحة تحكم الموظف (Plano)' : 'Employee Dashboard'),
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,

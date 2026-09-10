@@ -88,7 +88,7 @@ class SettingsScreen extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(Icons.info_outline, color: Color(0xFF4364F7)),
                   title: Text(isArabic ? 'إصدار النظام' : 'System Version'),
-                  trailing: const Text('PROFLU v1.0.0', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                  trailing: const Text('Plano v1.0.0', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
                 ),
                 const Divider(height: 1),
                 ListTile(

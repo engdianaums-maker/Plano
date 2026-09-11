@@ -55,6 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             content: Text(
               isArabic ? 'فشل تسجيل الدخول: $e' : 'Login failed: $e',
             ),
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -121,6 +122,100 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Text(isArabic ? 'إرسال' : 'Send'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showSignUpDialog() {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final nameController = TextEditingController();
+    final isArabic = ref.read(localeProvider).languageCode == 'ar';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          title: Text(isArabic ? 'إنشاء حساب جديد' : 'Sign Up'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: isArabic ? 'الاسم الكامل' : 'Full Name',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: isArabic ? 'البريد الإلكتروني' : 'Email',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: isArabic ? 'كلمة المرور' : 'Password',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(isArabic ? 'إلغاء' : 'Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3D5AFE),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                final email = emailController.text.trim();
+                final password = passwordController.text.trim();
+                final name = nameController.text.trim();
+
+                if (email.isNotEmpty && password.isNotEmpty && name.isNotEmpty) {
+                  try {
+                    await ref.read(authRepositoryProvider).signUpWithEmailAndPassword(
+                          email,
+                          password,
+                          name,
+                          'موظف عادي',
+                        );
+                    if (ctx.mounted) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isArabic
+                                ? 'تم إرسال طلب إنشاء الحساب بانتظار موافقة المدير'
+                                : 'Account registration request sent, awaiting manager approval',
+                          ),
+                          backgroundColor: Colors.orange,
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (ctx.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                      );
+                    }
+                  }
+                }
+              },
+              child: Text(isArabic ? 'تسجيل' : 'Register'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -252,15 +347,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  TextButton(
-                    onPressed: _resetPassword,
-                    child: Text(
-                      isArabic ? 'نسيت كلمة المرور؟' : 'Forgot your password?',
-                      style: const TextStyle(
-                        color: Color(0xFF3D5AFE),
-                        fontSize: 14,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: _resetPassword,
+                        child: Text(
+                          isArabic ? 'نسيت كلمة المرور؟' : 'Forgot password?',
+                          style: const TextStyle(
+                            color: Color(0xFF3D5AFE),
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
-                    ),
+                      TextButton(
+                        onPressed: _showSignUpDialog,
+                        child: Text(
+                          isArabic ? 'إنشاء حساب جديد' : 'Sign Up',
+                          style: const TextStyle(
+                            color: Color(0xFF3D5AFE),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

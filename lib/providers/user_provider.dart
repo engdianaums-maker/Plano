@@ -12,3 +12,8 @@ final userProvider = FutureProvider<AppUser?>((ref) async {
 
   return AppUser.fromMap(doc.data()!, doc.id);
 });
+
+final currentUserProvider = Provider<AppUser?>((ref) {
+  final userAsync = ref.watch(userProvider);
+  return userAsync.value;
+});

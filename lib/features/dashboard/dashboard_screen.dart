@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:plano/features/auth/auth_repository.dart';
 import 'package:plano/features/settings/settings_provider.dart';
 import 'package:plano/features/settings/settings_screen.dart';
@@ -18,24 +19,100 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   int _currentIndex = 0;
 
-  // استخدام IndexedStack يحافظ على حالة كل شاشة عند التنقل بينها عبر الشريط السفلي
-  final List<Widget> _screens = const [
-    TasksScreen(),
-    EmployeesScreen(),
-    ReportsScreen(),
-    ProfileScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final isArabic = ref.watch(localeProvider).languageCode == 'ar';
-    final currentUser = ref.watch(authStateChangesProvider).value;
-    final bool isManager = currentUser?.email == 'flupro@gmail.com';
+    final user = ref.watch(authStateChangesProvider).value;
+
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // المدير الخارق الأساسي
+    if (user.email == 'flupro@gmail.com') {
+      return _buildScaffold(context, ref, true, isArabic);
+    }
+
+    // مراقبة وثيقة المستخدم في فايربيس بشكل لحظي
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+
+        final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+        final String role = data['role'] ?? 'موظف عادي';
+        final Map<String, dynamic> rawPerms = data['permissions'] ?? {};
+
+        // الشرط الشامل: إذا كان دوره "مدير نظام" أو يملك صلاحية تخص الموظفين
+        final bool isManagerRole = role == 'مدير نظام';
+        final bool canManageEmployees = isManagerRole ||
+            (rawPerms['add_employee'] == true) ||
+            (rawPerms['edit_employee'] == true) ||
+            (rawPerms['delete_employee'] == true);
+
+        return _buildScaffold(context, ref, canManageEmployees, isArabic);
+      },
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, WidgetRef ref, bool canManageEmployees, bool isArabic) {
+    final List<Widget> screens = canManageEmployees
+        ? const [
+            TasksScreen(),
+            EmployeesScreen(),
+            ReportsScreen(),
+            ProfileScreen(),
+          ]
+        : const [
+            TasksScreen(),
+            ReportsScreen(),
+            ProfileScreen(),
+          ];
+
+    final List<BottomNavigationBarItem> navItems = canManageEmployees
+        ? [
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.task_alt),
+              label: isArabic ? 'المهام' : 'Tasks',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.group),
+              label: isArabic ? 'الموظفون' : 'Employees',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.bar_chart),
+              label: isArabic ? 'التقارير' : 'Reports',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.person),
+              label: isArabic ? 'حسابي' : 'Profile',
+            ),
+          ]
+        : [
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.task_alt),
+              label: isArabic ? 'المهام' : 'Tasks',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.bar_chart),
+              label: isArabic ? 'التقارير' : 'Reports',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.person),
+              label: isArabic ? 'حسابي' : 'Profile',
+            ),
+          ];
+
+    if (_currentIndex >= screens.length) {
+      _currentIndex = 0;
+    }
 
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -43,31 +120,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xFF2979FF),
         unselectedItemColor: Colors.grey,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.task_alt),
-            label: isArabic ? 'المهام' : 'Tasks',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.group),
-            label: isArabic ? 'الموظفون' : 'Employees',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.bar_chart),
-            label: isArabic ? 'التقارير' : 'Reports',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.person),
-            label: isArabic ? 'حسابي' : 'Profile',
-          ),
-        ],
+        items: navItems,
       ),
       appBar: AppBar(
         backgroundColor: const Color(0xFF2979FF),
         elevation: 0,
         title: Text(
-          isManager 
-              ? (isArabic ? 'لوحة تحكم المدير (Plano)' : 'Manager Dashboard') 
+          canManageEmployees 
+              ? (isArabic ? 'لوحة تحكم الإدارة (Plano)' : 'Management Dashboard') 
               : (isArabic ? 'لوحة تحكم الموظف (Plano)' : 'Employee Dashboard'),
           style: const TextStyle(
             color: Colors.white,
